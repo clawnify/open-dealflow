@@ -257,7 +257,9 @@ function SortableAttrRow({ def, canDrag, onEdit, onRemove }: { def: CustomFieldD
     disabled: !canDrag,
   });
   const w = widgetMetaFor(def);
-  const Icon = w?.icon ?? BASE_TYPES.find((b) => b.field_type === def.field_type)?.icon ?? TypeIcon;
+  const base = BASE_TYPES.find((b) => b.field_type === def.field_type);
+  const Icon = w?.icon ?? base?.icon ?? TypeIcon;
+  const typeLabel = w?.label ?? base?.label ?? def.field_type;
   return (
     <TableRow
       ref={setNodeRef}
@@ -270,7 +272,7 @@ function SortableAttrRow({ def, canDrag, onEdit, onRemove }: { def: CustomFieldD
       <TableCell>
         {canDrag && (
           <button type="button" {...attributes} {...listeners} aria-label={`Reorder ${def.label}`}
-            className="cursor-grab text-muted-foreground/60 hover:text-muted-foreground active:cursor-grabbing">
+            className="cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing">
             <GripVertical className="size-4" />
           </button>
         )}
@@ -282,7 +284,7 @@ function SortableAttrRow({ def, canDrag, onEdit, onRemove }: { def: CustomFieldD
           <span className="font-mono text-xs font-normal text-muted-foreground">{def.key}</span>
         </span>
       </TableCell>
-      <TableCell className="text-muted-foreground">{w?.label ?? def.field_type}</TableCell>
+      <TableCell className="text-muted-foreground">{typeLabel}</TableCell>
       <TableCell className="text-muted-foreground">{def.options.required === true ? "Required" : ""}</TableCell>
       <TableCell />
       <TableCell>
