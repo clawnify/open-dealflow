@@ -103,6 +103,28 @@ export async function classifyCustomWrite(
   return { values, unknown };
 }
 
+/**
+ * Labels of required custom fields (`options.required === true`) that a write
+ * violates. Create: the value must be present and non-empty. Update: only an
+ * explicit unset (null / "") violates — absent keys keep their stored value.
+ * Enforced on the create/update APIs only; bulk import stays lenient by design
+ * (it coerces bad cells to null rather than aborting a 2000-row file).
+ */
+export async function missingRequiredCustom(
+  entity: EntityType,
+  values: Record<string, unknown>,
+  mode: "create" | "update",
+): Promise<string[]> {
+  const required = (await listDefs(entity)).filter((d) => d.options.required === true);
+  const missing: string[] = [];
+  for (const def of required) {
+    const v = values[def.key];
+    const empty = v === null || v === undefined || v === "";
+    if (mode === "create" ? empty : def.key in values && empty) missing.push(def.label || def.key);
+  }
+  return missing;
+}
+
 /** Human-facing list of writable field keys (built-ins + registered custom),
  *  for the error body when a write includes an unknown field. Omits the
  *  server-managed columns a caller can't set. */

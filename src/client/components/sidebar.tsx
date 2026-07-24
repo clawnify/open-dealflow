@@ -10,7 +10,7 @@ const NAV = [
 ] as const;
 
 const SETTINGS_NAV = [
-  { key: "properties", path: "/settings/properties", label: "Properties", icon: SlidersHorizontal },
+  { key: "properties", path: "/settings/properties", label: "Attributes", icon: SlidersHorizontal },
 ] as const;
 
 export function Sidebar({ route, navigate }: { route: Route; navigate: (to: string) => void }) {

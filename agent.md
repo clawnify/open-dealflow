@@ -68,9 +68,11 @@ connect it in the Clawnify dashboard; don't try to work around it.
 
 Firms track different things (deal score, source channel, fund). Define real,
 typed columns at runtime: `POST /api/custom-fields`
-`{ entity_type, key, label, field_type }` — then write values flat on the
-entity or under `custom`. Unknown fields are rejected loudly (422) with the
-valid-field list.
+`{ entity_type, key, label, field_type, options }` — then write values flat on
+the entity or under `custom`. Unknown fields are rejected loudly (422) with the
+valid-field list. Set `options.required: true` to make a field mandatory —
+create/update then reject (400) when it's missing or being cleared. Bulk import
+stays lenient and does not enforce required.
 
 ## Import (CSV / XLSX)
 

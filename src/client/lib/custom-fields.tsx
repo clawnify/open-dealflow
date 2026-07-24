@@ -265,7 +265,10 @@ export function CustomFieldsSection({
       <div className="grid grid-cols-2 gap-3">
         {defs.map((def) => (
           <div key={def.id} className={cn("flex flex-col gap-1.5", isFullWidth(def) && "col-span-2")}>
-            <Label>{def.label}</Label>
+            <Label>
+              {def.label}
+              {def.options.required === true && <span className="text-destructive"> *</span>}
+            </Label>
             <CustomFieldInput def={def} value={values[def.key]} onChange={(v) => onChange(def.key, v)} />
           </div>
         ))}

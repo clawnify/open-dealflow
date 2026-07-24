@@ -10,6 +10,7 @@ import {
   deleteDef,
   coerceCustomValue,
   classifyCustomWrite,
+  missingRequiredCustom,
   writableFieldKeys,
   isEntityType,
   type EntityType,
@@ -419,6 +420,8 @@ app.openapi(createCompany, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("company", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("company", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("company", customValues, "create");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const name = body.name.trim();
     if (!name) return c.json({ error: "Name is required" }, 400);
 
@@ -476,6 +479,8 @@ app.openapi(updateCompany, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("company", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("company", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("company", customValues, "update");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const fields: string[] = [];
     const params: unknown[] = [];
 
@@ -655,6 +660,8 @@ app.openapi(createContact, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("contact", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("contact", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("contact", customValues, "create");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const firstName = body.first_name.trim();
     if (!firstName) return c.json({ error: "First name is required" }, 400);
 
@@ -726,6 +733,8 @@ app.openapi(updateContact, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("contact", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("contact", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("contact", customValues, "update");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const fields: string[] = [];
     const params: unknown[] = [];
 
@@ -952,6 +961,8 @@ app.openapi(createDeal, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("deal", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("deal", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("deal", customValues, "create");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const name = body.name.trim();
     if (!name) return c.json({ error: "Name is required" }, 400);
 
@@ -1027,6 +1038,8 @@ app.openapi(updateDeal, async (c) => {
     const { values: customValues, unknown } = await resolveCustomWrite("deal", body as unknown as Record<string, unknown>);
     const unknownErr = await unknownFieldsError("deal", unknown);
     if (unknownErr) return c.json(unknownErr, 422);
+    const missingReq = await missingRequiredCustom("deal", customValues, "update");
+    if (missingReq.length) return c.json({ error: `Missing required field(s): ${missingReq.join(", ")}` }, 400);
     const fields: string[] = [];
     const params: unknown[] = [];
 
