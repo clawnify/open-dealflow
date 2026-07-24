@@ -48,6 +48,28 @@ CREATE TABLE IF NOT EXISTS deals (
   updated_at TEXT DEFAULT (datetime('now'))
 );
 
+-- Pipeline stages — data, not code. `key` is the immutable identifier stored on
+-- deals.stage; label/color/position are editable. Semantic flags drive behavior
+-- with any vocabulary: is_won → celebrate + Slack, is_lost → pass_reason
+-- required semantics + excluded from pipeline value. Colors are tokens from the
+-- client's category palette (sky, emerald, amber, rose, violet, fuchsia, teal,
+-- orange, slate).
+CREATE TABLE IF NOT EXISTS stages (
+  key TEXT PRIMARY KEY,
+  label TEXT NOT NULL,
+  color TEXT NOT NULL DEFAULT 'slate',
+  position INTEGER NOT NULL DEFAULT 0,
+  is_won INTEGER NOT NULL DEFAULT 0,
+  is_lost INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- The default VC pipeline is seeded by the SERVER (ensureStagesSeeded in
+-- index.ts), only when this table is empty — so re-running the schema never
+-- resurrects a stage the user renamed or deleted, and we stay clear of D1's
+-- compound-SELECT statement limits.
+
 -- Activity timeline: one row per interaction logged against a contact, company,
 -- or deal. The substrate every integration writes into (email sent, meeting
 -- scheduled, Slack notification) plus manual notes.

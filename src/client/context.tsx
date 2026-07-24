@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { View, Contact, Company, Deal, Stats, PaginatedState, Activity, ConnectionStatus, EntityType, CustomFieldDef, ImportRow, ImportEntity, ImportResult } from "./types";
+import type { View, Contact, Company, Deal, Stats, PaginatedState, StageDef, Activity, ConnectionStatus, EntityType, CustomFieldDef, ImportRow, ImportEntity, ImportResult } from "./types";
 
 export interface CrmContextValue {
   isAgent: boolean;
@@ -55,6 +55,12 @@ export interface CrmContextValue {
   // Custom properties (field definitions, shared across screens)
   customFields: CustomFieldDef[];
   refetchCustomFields: () => Promise<void>;
+
+  // Pipeline stages (data-driven vocabulary, ordered by position)
+  stages: StageDef[];
+  refetchStages: () => Promise<void>;
+  refetchBoard: () => Promise<void>;
+  refetchStats: () => Promise<void>;
 
   loading: boolean;
   error: string | null;

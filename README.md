@@ -17,7 +17,7 @@ Unlike the incumbents, this runs on your own infrastructure with no per-seat pri
 
 ## Features
 
-- **VC-native pipeline** — a board with per-stage counts and totals; check size, round, and valuation on every deal
+- **VC-native pipeline** — a board with per-stage counts and totals; check size, round, and valuation on every deal. Stages are data, not code: rename, recolor, reorder, add ("IC review"), or delete them — semantics (won/passed) ride on flags, so any vocabulary works
 - **Warm-intro paths** — `GET /api/network/intro-paths?company_id=…` returns who in your network can introduce you, strongest relationships first
 - **Referral tracking** — every deal records who sourced it, so you know which relationships actually produce deal flow
 - **Pass memory** — passing requires a reason, logged to the deal's timeline; "why did we pass on X last year?" is always answerable
@@ -86,8 +86,9 @@ src/
 ```sql
 companies     (id, name, domain, industry, location, phone, email, notes)
 contacts      (id, first_name, last_name, email, phone, company_id → companies, title, status)
-deals         (id, name, contact_id → contacts, value, stage, round, valuation,
+deals         (id, name, contact_id → contacts, value, stage → stages.key, round, valuation,
                source_contact_id → contacts, pass_reason, close_date, notes)
+stages        (key, label, color, position, is_won, is_lost)
 relationships (id, contact_id → contacts, knows_contact_id → contacts, strength, context)
 activities    (id, entity_type, entity_id, type, body, meta)
 ```
@@ -103,6 +104,7 @@ activities    (id, entity_type, entity_id, type, body, meta)
 | GET/POST/PUT/DELETE | `/api/contacts` | People CRUD (typed: founder/investor/lp/…) |
 | GET/POST/PUT/DELETE | `/api/deals` | Deal CRUD (stage, round, valuation, source, pass reason) |
 | GET | `/api/deals/board` | The full pipeline board |
+| GET/POST/PUT/DELETE | `/api/stages` | Editable pipeline vocabulary (colors, order, won/lost flags) |
 | GET | `/api/network/intro-paths` | Warm-intro paths to a company or person |
 | GET | `/api/contacts/:id/relationships` | A person's edges in the graph |
 | POST/DELETE | `/api/relationships` | Record / remove who-knows-whom |

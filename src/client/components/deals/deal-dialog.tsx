@@ -18,8 +18,6 @@ import { api } from "@/api";
 import { CustomFieldsSection, readCustom } from "@/lib/custom-fields";
 import type { Deal } from "@/types";
 
-import { STAGES, STAGE_LABELS } from "@/lib/stages";
-
 const ROUNDS = ["pre-seed", "seed", "series-a", "series-b", "series-c+", "growth", "other"] as const;
 
 // Radix Select forbids an empty-string item value, so we use a sentinel for the
@@ -40,12 +38,12 @@ interface FormState {
   notes: string;
 }
 
-function toForm(deal?: Deal): FormState {
+function toForm(deal: Deal | undefined, defaultStage: string): FormState {
   return {
     name: deal?.name ?? "",
     contact_id: deal?.contact_id ?? "",
     value: deal?.value != null ? String(deal.value) : "",
-    stage: deal?.stage || "sourced",
+    stage: deal?.stage || defaultStage,
     round: deal?.round ?? "",
     valuation: deal?.valuation ? String(deal.valuation) : "",
     source_contact_id: deal?.source_contact_id ?? "",
@@ -64,16 +62,16 @@ export function DealDialog({
   onOpenChange: (open: boolean) => void;
   deal?: Deal;
 }) {
-  const { addDeal, updateDeal, setError, customFields } = useCrm();
+  const { addDeal, updateDeal, setError, customFields, stages } = useCrm();
   const dealFields = customFields.filter((d) => d.entity_type === "deal");
-  const [form, setForm] = useState<FormState>(() => toForm(deal));
+  const [form, setForm] = useState<FormState>(() => toForm(deal, stages[0]?.key ?? ""));
   const [custom, setCustom] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
 
   // Reset the form each time the dialog opens (create vs edit).
   useEffect(() => {
     if (open) {
-      setForm(toForm(deal));
+      setForm(toForm(deal, stages[0]?.key ?? ""));
       setCustom(Object.fromEntries(dealFields.map((d) => [d.key, readCustom(deal, d.key) ?? ""])));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,9 +164,9 @@ export function DealDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {STAGES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {STAGE_LABELS[s]}
+                  {stages.map((s) => (
+                    <SelectItem key={s.key} value={s.key}>
+                      {s.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -232,7 +230,7 @@ export function DealDialog({
             />
           </div>
 
-          {form.stage === "passed" && (
+          {stages.find((s) => s.key === form.stage)?.is_lost === 1 && (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="pass_reason">Pass reason</Label>
               <Textarea

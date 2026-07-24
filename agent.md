@@ -31,9 +31,22 @@ email, or a forwarded deck, record it here immediately:
 - Contact `status` is the relationship type: `founder | investor | lp | operator | other`.
 - Deal fields: `value` (check size, USD), `stage`, `round` (pre-seed, seed,
   series-a, …), `valuation`, `source_contact_id` (who referred it), `pass_reason`.
-- Stages: `sourced → screening → partner_meeting → diligence → term_sheet → invested`,
-  or `passed` at any point.
 - `GET /api/stats` — counts + total pipeline value (excludes passed deals).
+
+## Pipeline stages (data, not code)
+
+Stages live in the database — `GET /api/stages` is the vocabulary. Defaults:
+`sourced → screening → partner_meeting → diligence → term_sheet → invested`,
+plus `passed`. Deal writes validate the stage key (400 lists valid keys).
+
+- `POST /api/stages` `{ label, key?, color?, position?, is_won?, is_lost? }` —
+  add a stage (e.g. the firm adds an "IC review" step).
+- `PUT /api/stages/{key}` — rename, recolor, reorder, or change flags. Key is immutable.
+- `DELETE /api/stages/{key}?reassign_to=<key>` — reassign_to is required when
+  the stage still has deals.
+- **Semantics ride on flags, not names**: moving a deal to an `is_won: 1` stage
+  fires the Slack celebration; an `is_lost: 1` stage means passed — set
+  `pass_reason` on the deal in the same update.
 
 ## Network (warm intros)
 

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
 import { api } from "../api";
 import type {
-  Contact, Company, Deal, Stats, PaginatedState,
+  Contact, Company, Deal, Stats, PaginatedState, StageDef,
   Activity, ConnectionStatus, EntityType, CustomFieldDef, ImportRow, ImportEntity, ImportResult,
 } from "../types";
 import type { CrmContextValue } from "../context";
@@ -37,6 +37,7 @@ export function useCrmState(isAgent: boolean): CrmContextValue {
 
   const [connections, setConnections] = useState<ConnectionStatus>({ email: false, meeting: false, slack: false });
   const [customFields, setCustomFields] = useState<CustomFieldDef[]>([]);
+  const [stages, setStages] = useState<StageDef[]>([]);
 
   // ── Fetchers ──
 
@@ -81,6 +82,11 @@ export function useCrmState(isAgent: boolean): CrmContextValue {
     setCustomFields(data.defs);
   }, []);
 
+  const refetchStages = useCallback(async () => {
+    const data = await api<{ stages: StageDef[] }>("GET", "/api/stages");
+    setStages(data.stages);
+  }, []);
+
   // ── Initial load ──
 
   useEffect(() => {
@@ -90,7 +96,7 @@ export function useCrmState(isAgent: boolean): CrmContextValue {
         await Promise.all([
           fetchStats(), fetchContacts(contactsPag), fetchCompanies(companiesPag),
           fetchDeals(dealsPag), fetchBoardDeals(), fetchConnections(),
-          refetchCustomFields(),
+          refetchCustomFields(), refetchStages(),
         ]);
       } catch (err) {
         setError((err as Error).message);
@@ -237,6 +243,8 @@ export function useCrmState(isAgent: boolean): CrmContextValue {
     connections, emailContact, scheduleMeeting,
     fetchActivities, addNote, importEntity,
     customFields, refetchCustomFields,
+    stages, refetchStages,
+    refetchBoard: fetchBoardDeals, refetchStats: fetchStats,
     loading, error, setError,
   };
 }

@@ -96,6 +96,19 @@ export interface Relationship {
   updated_at: string;
 }
 
+/** A pipeline stage — data, not code. `key` is immutable and stored on
+ *  deals.stage; behavior hangs on is_won/is_lost, never on names. */
+export interface StageDef {
+  key: string;
+  label: string;
+  color: string; // palette token (sky, emerald, …)
+  position: number;
+  is_won: number; // 0 | 1
+  is_lost: number; // 0 | 1
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Stats {
   contacts: number;
   companies: number;
