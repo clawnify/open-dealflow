@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Trash2, Plus, Search, Settings, GripVertical, MoreHorizontal, Pencil, Type as TypeIcon, Hash, Calendar, User, Link2, List, ToggleLeft, CircleDot } from "lucide-react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { useCrm } from "@/context";
 import { PageHeader } from "@/components/shared";
@@ -194,7 +195,8 @@ function EntityAttributes({
       </div>
 
       <div className="overflow-hidden rounded-md border border-border">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis, restrictToParentElement]} onDragEnd={onDragEnd}>
           <Table>
             <TableHeader>
               <TableRow>
