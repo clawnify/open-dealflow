@@ -1,0 +1,104 @@
+-- UUID text primary keys (not incremental) so ids aren't enumerable/IDOR-prone.
+-- Ids are generated in the app layer with crypto.randomUUID().
+
+CREATE TABLE IF NOT EXISTS companies (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  domain TEXT DEFAULT '',
+  industry TEXT DEFAULT '',
+  location TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- People in the fund's network. `status` is the relationship type:
+-- 'founder' | 'investor' | 'lp' | 'operator' | 'other'.
+CREATE TABLE IF NOT EXISTS contacts (
+  id TEXT PRIMARY KEY,
+  first_name TEXT NOT NULL,
+  last_name TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  company_id TEXT REFERENCES companies(id) ON DELETE SET NULL,
+  title TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'founder',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- One row per investment opportunity. `value` is the check size under
+-- consideration; `stage` walks the VC pipeline:
+-- 'sourced' | 'screening' | 'partner_meeting' | 'diligence' | 'term_sheet' | 'invested' | 'passed'.
+CREATE TABLE IF NOT EXISTS deals (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  contact_id TEXT REFERENCES contacts(id) ON DELETE SET NULL,
+  value REAL DEFAULT 0,
+  stage TEXT NOT NULL DEFAULT 'sourced',
+  round TEXT DEFAULT '',
+  valuation REAL DEFAULT 0,
+  source_contact_id TEXT REFERENCES contacts(id) ON DELETE SET NULL,
+  pass_reason TEXT DEFAULT '',
+  close_date TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Activity timeline: one row per interaction logged against a contact, company,
+-- or deal. The substrate every integration writes into (email sent, meeting
+-- scheduled, Slack notification) plus manual notes.
+CREATE TABLE IF NOT EXISTS activities (
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,               -- 'contact' | 'company' | 'deal'
+  entity_id TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'note',        -- 'note' | 'email' | 'meeting' | 'slack' | 'stage_change'
+  body TEXT DEFAULT '',
+  meta TEXT DEFAULT '',                     -- JSON: subject, recipient, event link, channel, etc.
+  created_at TEXT DEFAULT (datetime('now'))
+);
+
+-- The relationship graph: who in the network knows whom. Directed edge from
+-- contact_id → knows_contact_id (the agent writes both directions when a
+-- relationship is mutual). This is what powers warm-intro path lookups.
+CREATE TABLE IF NOT EXISTS relationships (
+  id TEXT PRIMARY KEY,
+  contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  knows_contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+  strength TEXT NOT NULL DEFAULT 'medium',  -- 'strong' | 'medium' | 'weak'
+  context TEXT DEFAULT '',                  -- how they know each other
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(contact_id, knows_contact_id)
+);
+
+-- Custom-property definitions. One row per user-defined field on an entity
+-- type. Each def maps to a REAL column on the entity's table, added via
+-- ALTER TABLE at definition time (see custom-fields.ts) so values are native,
+-- indexable columns — not a JSON blob. This table is only the registry.
+CREATE TABLE IF NOT EXISTS custom_field_defs (
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,                -- 'contact' | 'company' | 'deal'
+  key TEXT NOT NULL,                        -- column name; ^[a-z][a-z0-9_]*$
+  label TEXT NOT NULL,
+  field_type TEXT NOT NULL DEFAULT 'string',-- base type; drives SQL affinity + coercion
+  custom_field TEXT DEFAULT '',             -- widget registry uid (e.g. clawnify::score.score)
+  options TEXT NOT NULL DEFAULT '{}',        -- JSON: widget config (score min/max, badge enum, colors)
+  position INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(entity_type, key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_contacts_company ON contacts(company_id);
+CREATE INDEX IF NOT EXISTS idx_deals_contact ON deals(contact_id);
+CREATE INDEX IF NOT EXISTS idx_deals_source_contact ON deals(source_contact_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
+CREATE INDEX IF NOT EXISTS idx_deals_stage ON deals(stage);
+CREATE INDEX IF NOT EXISTS idx_activities_entity ON activities(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_relationships_contact ON relationships(contact_id);
+CREATE INDEX IF NOT EXISTS idx_relationships_knows ON relationships(knows_contact_id);
+CREATE INDEX IF NOT EXISTS idx_custom_field_defs_entity ON custom_field_defs(entity_type, position);

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://app.clawnify.com/schema/v1/clawnify.json",
+  "version": 1,
+  "name": "Dealflow",
+  "description": "Dealflow CRM for investors: startups, people, a VC pipeline, and a warm-intro relationship graph. Like Affinity. Best for venture capital, angel investing, deal tracking, or investor relationship management.",
+  "icon": "icon.svg",
+  "tags": ["vc", "dealflow", "crm", "investing", "pipeline", "network"],
+
+  "app": {
+    "framework": "react+hono",
+    "database": true,
+    "storage": false,
+    "credentials": ["googlesuper", "googlecalendar", "slack"]
+  },
+
+  "env": {
+    "optional": ["SLACK_CHANNEL"]
+  },
+
+  "deploy": {
+    "title": "Deploy your dealflow CRM",
+    "subtitle": "Track deals, map your network, never lose a warm intro — at a fraction of what the incumbents charge",
+    "prompts": [
+      {
+        "key": "firm_name",
+        "label": "Fund or firm name",
+        "placeholder": "e.g. Northbridge Ventures",
+        "required": true
+      },
+      {
+        "key": "focus",
+        "label": "What do you invest in?",
+        "placeholder": "e.g. pre-seed/seed B2B SaaS in Europe",
+        "required": true
+      },
+      {
+        "key": "pipeline_stages",
+        "label": "Your pipeline stages (or keep the default)",
+        "placeholder": "Sourced, Screening, Partner meeting, Diligence, Term sheet, Invested, Passed"
+      },
+      {
+        "key": "details",
+        "label": "Any other details?",
+        "type": "textarea",
+        "placeholder": "Custom fields (e.g. deal score, source channel), terminology, brand colors..."
+      }
+    ]
+  },
+
+  "agent": "agent.md"
+}
