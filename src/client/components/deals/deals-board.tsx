@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { Plus, Pencil, Trash2, MoreHorizontal, ArrowRightLeft } from "lucide-react";
 import { useCrm } from "@/context";
 import { PageHeader, Avatar, EntityIcon, CategoryBadge, EmptyState } from "@/components/shared";
 import { DealDialog } from "@/components/deals/deal-dialog";
@@ -15,7 +15,7 @@ import { formatMoney, colorClasses, cn } from "@/lib/utils";
 import type { Deal, StageDef } from "@/types";
 
 export function DealsBoard() {
-  const { boardDeals, stats, dealsTotalValue, updateDeal, deleteDeal, stages, refetchStages, refetchBoard, refetchStats, setError } = useCrm();
+  const { boardDeals, stats, dealsTotalValue, updateDeal, deleteDeal, stages, refetchStages, refetchBoard, refetchStats, setError, isAgent } = useCrm();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Deal | undefined>(undefined);
@@ -110,59 +110,75 @@ export function DealsBoard() {
                     {columnDeals.map((d) => {
                       const contactName = `${d.contact_first_name ?? ""} ${d.contact_last_name ?? ""}`.trim();
                       return (
-                        <Card key={d.id} className="flex flex-col gap-2 p-3">
+                        // DESIGN.md: resting card = border only, quiet hover one
+                        // tonal step; actions reveal on hover (always visible in
+                        // agent mode — never gate an action behind hover there).
+                        <Card key={d.id} className="group/card flex flex-col gap-1.5 p-3 transition-colors hover:bg-secondary/50">
                           <div className="flex items-start justify-between gap-2">
-                            <span className="font-medium">{d.name}</span>
+                            <span className="text-sm font-medium">{d.name}</span>
                             <span className="tabular shrink-0 text-sm font-semibold">{formatMoney(d.value)}</span>
                           </div>
 
-                          {d.round && <CategoryBadge value={d.round} className="self-start" />}
-
-                          {d.company_name && (
-                            <span className="flex items-center gap-2 text-[0.8125rem] text-muted-foreground">
-                              <EntityIcon name={d.company_name} domain={d.company_domain} />
-                              <span>{d.company_name}</span>
-                            </span>
+                          {(d.company_name || contactName) && (
+                            <div className="flex items-center gap-2 text-[0.8125rem] text-muted-foreground">
+                              {d.company_name && (
+                                <span className="flex min-w-0 items-center gap-1.5">
+                                  <EntityIcon name={d.company_name} domain={d.company_domain} className="size-5" />
+                                  <span className="truncate">{d.company_name}</span>
+                                </span>
+                              )}
+                              {d.company_name && contactName && <span className="text-border">·</span>}
+                              {contactName && (
+                                <span className="flex min-w-0 items-center gap-1.5">
+                                  <Avatar firstName={d.contact_first_name} lastName={d.contact_last_name} className="size-5 text-[0.5625rem]" />
+                                  <span className="truncate">{contactName}</span>
+                                </span>
+                              )}
+                            </div>
                           )}
 
-                          {contactName && (
-                            <span className="flex items-center gap-2 text-[0.8125rem] text-muted-foreground">
-                              <Avatar firstName={d.contact_first_name} lastName={d.contact_last_name} className="size-5 text-[0.5625rem]" />
-                              <span>{contactName}</span>
-                            </span>
-                          )}
-
-                          <div className="mt-1 flex items-center justify-between gap-2">
-                            <Select value="" onValueChange={(v) => updateDeal(d.id, { stage: v })}>
-                              <SelectTrigger className="h-8 flex-1">
-                                <SelectValue placeholder="Move to…" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {stages.filter((s) => s.key !== d.stage).map((s) => (
-                                  <SelectItem key={s.key} value={s.key}>
-                                    {s.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-8"
-                              aria-label={`Edit ${d.name}`}
-                              onClick={() => openEdit(d)}
-                            >
-                              <Pencil className="size-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="size-8 text-muted-foreground hover:text-destructive"
-                              aria-label={`Delete ${d.name}`}
-                              onClick={() => setDeleteTarget(d)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
+                          <div className="flex items-center justify-between gap-2">
+                            {d.round ? <CategoryBadge value={d.round} /> : <span />}
+                            <div className={cn(
+                              "flex items-center transition-opacity",
+                              isAgent ? "opacity-100" : "opacity-0 group-hover/card:opacity-100 focus-within:opacity-100",
+                            )}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="size-7" aria-label={`Move ${d.name} to another stage`}>
+                                    <ArrowRightLeft className="size-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {stages.filter((s) => s.key !== d.stage).map((s) => {
+                                    const sc = colorClasses(s.color);
+                                    return (
+                                      <DropdownMenuItem key={s.key} onClick={() => updateDeal(d.id, { stage: s.key })}>
+                                        <span className={cn("size-2 rounded-full", sc.dot)} /> {s.label}
+                                      </DropdownMenuItem>
+                                    );
+                                  })}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="size-7"
+                                aria-label={`Edit ${d.name}`}
+                                onClick={() => openEdit(d)}
+                              >
+                                <Pencil className="size-3.5" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="size-7 text-muted-foreground hover:text-destructive"
+                                aria-label={`Delete ${d.name}`}
+                                onClick={() => setDeleteTarget(d)}
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </Card>
                       );
