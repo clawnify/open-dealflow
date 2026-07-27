@@ -6,6 +6,10 @@
   "icon": "icon.svg",
   "tags": ["vc", "dealflow", "crm", "investing", "pipeline", "network"],
 
+  "template": {
+    "image": "https://raw.githubusercontent.com/clawnify/open-dealflow/main/readme-banner.png"
+  },
+
   "app": {
     "framework": "react+hono",
     "database": true,

@@ -1,3 +1,5 @@
+<img src="readme-banner.png" alt="Dealflow preview" />
+
 # Dealflow: The Open-Source Affinity Alternative for VCs
 
 A dealflow CRM for investors — startups, people, a VC pipeline, and a warm-intro relationship graph. Self-hosted, agent-ready, and free. Built for funds that are priced out of Affinity's ~$2,000/seat and don't want to bend HubSpot into something it isn't.
