@@ -2,6 +2,8 @@
 
 # Dealflow: The Open-Source Affinity Alternative for VCs
 
+[![Deploy with Clawnify](https://app.clawnify.com/deploy-button.svg)](https://app.clawnify.com/deploy?repo=clawnify/open-dealflow)
+
 A dealflow CRM for investors — startups, people, a VC pipeline, and a warm-intro relationship graph. Self-hosted, agent-ready, and free. Built for funds that are priced out of Affinity's ~$2,000/seat and don't want to bend HubSpot into something it isn't.
 
 Built with **React + Tailwind + shadcn/ui** on **Hono + SQLite**. Path-based routing, UUID keys, dark mode that follows the OS, and a dual-mode UI: one for humans and one for AI agents (larger targets, always-visible actions).
